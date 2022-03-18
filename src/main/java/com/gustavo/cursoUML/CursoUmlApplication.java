@@ -1,28 +1,40 @@
 package com.gustavo.cursoUML;
 
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import com.gustavo.cursoUML.domain.Categoria;
 import com.gustavo.cursoUML.domain.Cidade;
 import com.gustavo.cursoUML.domain.Cliente;
 import com.gustavo.cursoUML.domain.Endereco;
 import com.gustavo.cursoUML.domain.Estado;
+import com.gustavo.cursoUML.domain.Pagamento;
+import com.gustavo.cursoUML.domain.PagamentoComBoleto;
+import com.gustavo.cursoUML.domain.PagamentoComCartao;
+import com.gustavo.cursoUML.domain.Pedido;
 import com.gustavo.cursoUML.domain.Produto;
+import com.gustavo.cursoUML.domain.enums.EstadoPagamento;
 import com.gustavo.cursoUML.domain.enums.TipoCliente;
 import com.gustavo.cursoUML.domain.repositories.CategoriaRepository;
 import com.gustavo.cursoUML.domain.repositories.CidadeRepository;
 import com.gustavo.cursoUML.domain.repositories.ClienteRepository;
 import com.gustavo.cursoUML.domain.repositories.EnderecoRepository;
 import com.gustavo.cursoUML.domain.repositories.EstadoRepository;
+import com.gustavo.cursoUML.domain.repositories.PagamentoRepository;
+import com.gustavo.cursoUML.domain.repositories.PedidoRepository;
 import com.gustavo.cursoUML.domain.repositories.ProdutoRepository;
 
 @SpringBootApplication
+@EnableWebMvc
+@RestController
 public class CursoUmlApplication implements CommandLineRunner{
 
 	@Autowired
@@ -42,6 +54,13 @@ public class CursoUmlApplication implements CommandLineRunner{
 	
 	@Autowired
 	private EnderecoRepository enderecoRepository;
+	
+	@Autowired
+	private PedidoRepository pedidoRespository;
+	
+	@Autowired
+	private PagamentoRepository pagamentoRespository;
+	
 	
 	public static void main(String[] args) {
 		SpringApplication.run(CursoUmlApplication.class, args);
@@ -89,6 +108,22 @@ public class CursoUmlApplication implements CommandLineRunner{
 		
 		clienteRepository.saveAll(Arrays.asList(cli1));
 		enderecoRepository.saveAll(Arrays.asList(e1, e2));
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm");
+				
+		Pedido ped1 = new Pedido(null, sdf.parse("30/09/2022 10:30"), cli1, e1);
+		Pedido ped2 = new Pedido(null, sdf.parse("10/10/2022 10:30"), cli1, e2);
+		
+		Pagamento pagto1 = new PagamentoComCartao(null, EstadoPagamento.QUITADO, ped1, 6);
+		ped1.setPagamento(pagto1);
+		
+		Pagamento pagto2 = new PagamentoComBoleto(null, EstadoPagamento.PENDENTE, ped2, sdf.parse("01/10/2022 00:00"), null);
+		ped2.setPagamento(pagto2);
+		
+		cli1.getPedidos().addAll(Arrays.asList(ped1, ped2));
+		
+		pedidoRespository.saveAll(Arrays.asList(ped1, ped2));
+		pagamentoRespository.saveAll(Arrays.asList(pagto1, pagto2));
 		
 		
 	}
